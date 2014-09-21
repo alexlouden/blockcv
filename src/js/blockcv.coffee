@@ -1,3 +1,7 @@
+class Paddle extends Particle
+
+class PaddleBehaviour extends Behaviour
+
 class App
   constructor: ->
     video = document.getElementById("video")
@@ -42,6 +46,7 @@ class App
     # Particle colours
     PARTICLE_COLOURS = ['DC0048', 'F14646', '4AE6A9', '7CFF3F', '4EC9D9', 'E4272E']
 
+    ################################
     # Set up particles
     for i in [0..30]
       
@@ -61,6 +66,7 @@ class App
       # Add to the simulation
       @physics.particles.push particle
 
+    ################################
     # Set up ball
     @ball = new Particle(1)
     @ball.setRadius @ball.mass * 8
@@ -72,6 +78,19 @@ class App
     collision.pool.push @ball
     @ball.behaviours.push collision, edge
     @physics.particles.push @ball
+
+    ################################
+    # Set up paddle
+    @paddle = new Paddle(10)
+    @paddle.setRadius 50
+    bottomcentre = new Vector(@game.width/2, @game.height - 30)
+    @paddle.moveTo bottomcentre
+    @paddle.colour = '000000'
+
+    # Paddle behaviour
+    paddlebehaviour = new PaddleBehaviour()
+    @paddle.behaviours.push paddlebehaviour, collision, edge
+    collision.pool.push @paddle
 
   gameDraw: =>
     
@@ -85,6 +104,17 @@ class App
       @game.arc particle.pos.x, particle.pos.y, particle.radius, 0, Math.PI * 2
       @game.fillStyle = '#' + (particle.colour or 'FFFFFF')
       @game.fill()
+
+    # Draw paddle
+    p = @paddle
+    width = @paddle.radius
+
+    @game.strokeStyle = 'rgba(0,0,0,1)'
+    @game.lineWidth = 10
+    @game.moveTo(p.pos.x - width/2, p.pos.y)
+    @game.lineTo(p.pos.x + width/2, p.pos.y)
+    @game.stroke()
+
 
   onTrackEvent: (event) =>
     @context.clearRect 0, 0, @canvas.width, @canvas.height
