@@ -29,6 +29,7 @@ module.exports = (grunt) ->
       js:
         files:
           [{expand: true, cwd: 'src/js/', src: ['*.js'], dest: 'dist/js/', filter: 'isFile'},
+           {expand: true, cwd: 'src/js/', src: ['*.coffee'], dest: 'dist/src/js', filter: 'isFile'},
            {expand: true, cwd: 'src/images/', src: ['*'], dest: 'dist/images/', filter: 'isFile'}]
           
     # SASS -> CSS
