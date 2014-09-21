@@ -61,6 +61,15 @@ class CustomCollision extends Collision
       # Squared distance between particles
       distSq = @_delta.magSq()
 
+      if o is @paddle
+        # Left < ball < right
+        if o.pos.x - o.radius < p.pos.x < o.pos.x + o.radius
+          # above paddle
+          if o.pos.y - 10 < p.pos.y
+            # bounce
+            p.old.pos.y = p.pos.y + p.vel.y
+        continue
+
       # Sum of both radii
       radii = p.radius + o.radius
 
@@ -269,10 +278,10 @@ class App
 
   onCollision: (particle, other) =>
     # ball <--> particle collision?
-    debugger
-    console.log "collision"
-    console.log particle
-    console.log other
+    
+    # console.log "collision"
+    # console.log particle
+    # console.log other
 
     @physics.particles = @physics.particles.remove particle
     @collision.pool = @collision.pool.remove particle
