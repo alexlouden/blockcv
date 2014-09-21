@@ -28,19 +28,24 @@ class App
 
   gameSetup: =>
 
-    antiGravity = new Attraction()
+    up = new Vector 0.0, -98.0
+    antiGravity = new ConstantForce(up)
+    
     collision = new Collision()
 
-    min = new Vector 0.0, 0.0
-    max = new Vector @game.width, @game.height
-    edge = new EdgeWrap min, max
+    # Bounce off edges, with padding
+    bound = 10.0
+    min = new Vector bound, bound
+    max = new Vector @game.width - bound, @game.height - bound
+    edge = new EdgeBounce min, max
 
-    for i in [0..100]
+    for i in [0..30]
       
       # Create a particle
-      particle = new Particle(Math.random())
+      size = 1 + Math.random()
+      particle = new Particle(size)
       position = new Vector(random(@width), random(@height))
-      particle.setRadius particle.mass * 10
+      particle.setRadius particle.mass * 8
       particle.moveTo position
       
       # Make it collidable
@@ -51,10 +56,6 @@ class App
       
       # Add to the simulation
       @physics.particles.push particle
-
-    antiGravity.target.x = @width / 2
-    antiGravity.target.y = @height / 2
-    antiGravity.strength = 120
 
     @game.fillStyle = "#ff0000"
 
