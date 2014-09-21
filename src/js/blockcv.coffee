@@ -11,8 +11,6 @@ class PaddleBehaviour extends Behaviour
     # Move paddle along x
     dx = p.pos.x - @desired_x
 
-    console.log dx
-
     if dx == 0
       p.vel.x = 0
       p.acc.x = 0
@@ -27,8 +25,6 @@ class PaddleBehaviour extends Behaviour
 class App
   constructor: ->
     video = document.getElementById("video")
-    @canvas = document.getElementById("canvas")
-    @context = @canvas.getContext("2d")
 
     tracker = new tracking.ColorTracker("magenta")
     # can also use custom colours
@@ -65,6 +61,8 @@ class App
     min = new Vector bound, bound
     max = new Vector @game.width - bound, @game.height - bound
     edge = new EdgeBounce min, max
+    tophalfmax = new Vector @game.width - bound, @game.height / 3
+    tophalf = new EdgeBounce min, tophalfmax
 
     # Particle colours
     PARTICLE_COLOURS = ['DC0048', 'F14646', '4AE6A9', '7CFF3F', '4EC9D9', 'E4272E']
@@ -84,7 +82,7 @@ class App
       collision.pool.push particle
       
       # Apply behaviours
-      particle.behaviours.push antiGravity, collision, edge
+      particle.behaviours.push antiGravity, collision, tophalf
       
       # Add to the simulation
       @physics.particles.push particle
@@ -141,19 +139,29 @@ class App
     @game.lineTo(p.pos.x + p.radius, p.pos.y)
     @game.stroke()
 
+    # rectangle position
+    if @target_rectangle
+      @game.strokeStyle = 'magenta'
+      @game.lineWidth = 1
+      rect = @target_rectangle
+      @game.strokeRect rect.x, rect.y, rect.width, rect.height
+      @paddlebehaviour.desired_x = rect.x + rect.width / 2
+
 
   onTrackEvent: (event) =>
-    @context.clearRect 0, 0, @canvas.width, @canvas.height
-    
-    event.data.forEach (rect) =>
-      rect.color = tracker.customColor  if rect.color is "custom"
-      @context.strokeStyle = rect.color
-      @context.strokeRect rect.x, rect.y, rect.width, rect.height
-      @context.font = "11px Helvetica"
-      @context.fillStyle = "#fff"
-      @context.fillText "x: " + rect.x + "px", rect.x + rect.width + 5, rect.y + 11
-      @context.fillText "y: " + rect.y + "px", rect.x + rect.width + 5, rect.y + 22
+
+    if event.data.length == 0
+      @target_rectangle = false
       return
+
+    console.log event.data
+
+    if event.data.length > 1
+      console.log 'more than one rect'
+
+    rect = event.data[0]
+    @target_rectangle = rect
+
 
 $ ->
   window.app = new App()
