@@ -1,3 +1,7 @@
+Array::remove = (obj) ->
+  @filter (el) -> el isnt obj
+
+class Block extends Particle
 class Paddle extends Particle
 class Ball extends Particle
 
@@ -36,7 +40,7 @@ class BallSpeed extends Behaviour
 
 class CustomCollision extends Collision
 
-  constructor: (@useMass = yes, @callback = null) ->
+  constructor: (@useMass = yes, @callback = null, @ball = null, @paddle = null) ->
 
     # Pool of collidable particles.
     @pool = []
@@ -51,38 +55,77 @@ class CustomCollision extends Collision
     # Check pool for collisions.
     for o in @pool[index..] when o isnt p
 
-      # Delta between particles positions.
+      # Delta between particles positions
       (@_delta.copy o.pos).sub p.pos
 
-      # Squared distance between particles.
+      # Squared distance between particles
       distSq = @_delta.magSq()
 
-      # Sum of both radii.
+      # Sum of both radii
       radii = p.radius + o.radius
 
-      # Check if particles collide.
+      # Check if particles collide
       if distSq <= radii * radii
 
-        # Compute real distance.
-        dist = Math.sqrt distSq
+        if o is @ball
 
-        # Determine overlap.
-        overlap = radii - dist
-        overlap += 0.5
+          # Ball <--> particle
+          console.log 'ball'
+          
+          # bounce
+          o.vel.x = -o.vel.x
+          o.vel.y = -o.vel.y
+          o.acc.x = -o.acc.x
+          o.acc.y = -o.acc.y
 
-        # Total mass.
-        mt = p.mass + o.mass
+          # Fire callback if defined.
+          @callback?(p, o, overlap)
 
-        # Distribute collision responses.
-        r1 = if @useMass then o.mass / mt else 0.5
-        r2 = if @useMass then p.mass / mt else 0.5
+        else
+          # Particle <--> particle
 
-        # Move particles so they no longer overlap.
-        p.pos.add (@_delta.clone().norm().scale overlap * -r1)
-        o.pos.add (@_delta.norm().scale overlap * r2)
+          # Compute real distance.
+          dist = Math.sqrt distSq
 
-        # Fire callback if defined.
-        @callback?(p, o, overlap)
+          # Determine overlap.
+          overlap = radii - dist
+          overlap += 0.5
+
+          # Total mass.
+          mt = p.mass + o.mass
+
+          # Distribute collision responses.
+          r1 = if @useMass then o.mass / mt else 0.5
+          r2 = if @useMass then p.mass / mt else 0.5
+
+          # Move particles so they no longer overlap.
+          p.pos.add (@_delta.clone().norm().scale overlap * -r1)
+          o.pos.add (@_delta.norm().scale overlap * r2)
+
+class EdgeBouncy extends EdgeBounce
+
+  apply: (p, dt, index) ->
+
+    if p.pos.x - p.radius < @min.x
+      p.pos.x = @min.x + p.radius
+      p.vel.x = -p.vel.x
+      p.acc.x = -p.acc.x
+
+    else if p.pos.x + p.radius > @max.x
+      p.pos.x = @max.x - p.radius
+      p.vel.x = -p.vel.x
+      p.acc.x = -p.acc.x
+
+    if p.pos.y - p.radius < @min.y
+      p.pos.y = @min.y + p.radius
+      p.vel.y = -p.vel.y
+      p.acc.y = -p.acc.y
+
+    else if p.pos.y + p.radius > @max.y
+      p.pos.y = @max.y - p.radius
+      p.vel.y = -p.vel.y
+      p.acc.y = -p.acc.y
+
 
 class App
   constructor: ->
@@ -120,13 +163,13 @@ class App
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
     
-    collision = new CustomCollision(true, @onCollision)
+    @collision = new CustomCollision(true, @onCollision)
 
     # Bounce off edges, with padding
     bound = 10.0
     min = new Vector bound, bound
     max = new Vector @game.width - bound, @game.height - bound
-    edge = new EdgeBounce min, max
+    edge = new EdgeBouncy min, max
 
     # Keep balls in top third
     tophalfmax = new Vector @game.width - bound, @game.height / 3
@@ -147,17 +190,17 @@ class App
     for i in [0..30]
       
       size = 1 + Math.random()
-      particle = new Particle(size)
+      particle = new Block(size)
       position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
       particle.moveTo position
       particle.colour = Random.item PARTICLE_COLOURS
       
       # Make it collidable
-      collision.pool.push particle
+      @collision.pool.push particle
       
       # Apply behaviours
-      particle.behaviours.push antiGravity, collision, tophalf
+      particle.behaviours.push antiGravity, @collision, tophalf
       
       # Add to the simulation
       @physics.particles.push particle
@@ -171,8 +214,8 @@ class App
     @ball.colour = '000000'
 
     # Ball behaviours
-    collision.pool.push @ball
-    @ball.behaviours.push edge, collision
+    @collision.pool.push @ball
+    @ball.behaviours.push edge, @collision
     @physics.particles.push @ball
 
     ################################
@@ -184,10 +227,13 @@ class App
     @paddle.colour = '000000'
 
     # Paddle behaviour
-    collision.pool.push @paddle
+    @collision.pool.push @paddle
     @paddlebehaviour = new PaddleBehaviour(@paddle.pos.x, @paddle.pos.y)
-    @paddle.behaviours.push edge, collision, @paddlebehaviour
+    @paddle.behaviours.push edge, @collision, @paddlebehaviour
     @physics.particles.push @paddle
+
+    @collision.ball = @ball
+    @collision.paddle = @paddle
 
   gameDraw: =>
     
@@ -223,11 +269,19 @@ class App
       @paddlebehaviour.desired_x = rect.x + rect.width / 2
 
   onCollision: (particle, other) =>
-    if particle == @ball or other == @ball
-      console.log "collision"
-      console.log particle
-      console.log other
-      debugger
+    # ball <--> particle collision?
+    debugger
+    console.log "collision"
+    console.log particle
+    console.log other
+
+    @physics.particles = @physics.particles.remove particle
+    @collision.pool = @collision.pool.remove particle
+
+    # Delete particle
+    # remove from pools
+    # increment score?
+
 
   onTrackEvent: (event) =>
 
@@ -248,7 +302,7 @@ class App
     console.log 'Starting game'
     @state = 'playing'
 
-    @ball.acc.set 1000, -1000
+    @ball.acc.set 4000, -4000
 
 
     # ballbehaviour = new BallSpeed()
