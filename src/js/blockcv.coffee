@@ -25,7 +25,7 @@ class PaddleBehaviour extends Behaviour
 
 class BallSpeed extends Behaviour
 
-  apply: (p, dt, index) ->
+  # apply: (p, dt, index) ->
     
     # if p.acc.x == 0 and p.acc.y == 0
     #   # Zero motion - launch towards top right
@@ -34,7 +34,7 @@ class BallSpeed extends Behaviour
     # if -min < p.vel.y < min
     #   p.vel.x = 100 if p.acc.x < 0 then -100 else 100
 
-class BallCollision extends Collision
+class CustomCollision extends Collision
 
   constructor: (@useMass = yes, @callback = null) ->
 
@@ -60,33 +60,29 @@ class BallCollision extends Collision
       # Sum of both radii.
       radii = p.radius + o.radius
 
-      console.log distSq
-      console.log radii * radii
-
       # Check if particles collide.
       if distSq <= radii * radii
 
-        # # Compute real distance.
-        # dist = Math.sqrt distSq
+        # Compute real distance.
+        dist = Math.sqrt distSq
 
-        # # Determine overlap.
-        # overlap = radii - dist
-        # overlap += 0.5
+        # Determine overlap.
+        overlap = radii - dist
+        overlap += 0.5
 
-        # # Total mass.
-        # mt = p.mass + o.mass
+        # Total mass.
+        mt = p.mass + o.mass
 
-        # # Distribute collision responses.
-        # r1 = if @useMass then o.mass / mt else 0.5
-        # r2 = if @useMass then p.mass / mt else 0.5
+        # Distribute collision responses.
+        r1 = if @useMass then o.mass / mt else 0.5
+        r2 = if @useMass then p.mass / mt else 0.5
 
-        # # Move particles so they no longer overlap.
-        # p.pos.add (@_delta.clone().norm().scale overlap * -r1)
-        # o.pos.add (@_delta.norm().scale overlap * r2)
+        # Move particles so they no longer overlap.
+        p.pos.add (@_delta.clone().norm().scale overlap * -r1)
+        o.pos.add (@_delta.norm().scale overlap * r2)
 
         # Fire callback if defined.
         @callback?(p, o, overlap)
-
 
 class App
   constructor: ->
@@ -102,7 +98,9 @@ class App
     tracker.on "track", @onTrackEvent
 
     # Create a physics instance which uses the Verlet integration method
-    @physics = new Physics()
+    @physics = new Physics
+    @physics.viscosity = 0
+
     @physics.integrator = new Verlet()
 
     # Use Sketch.js to make life much easier
@@ -122,8 +120,7 @@ class App
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
     
-    collision = new Collision
-    ballcollision = new BallCollision(true, @onCollision)
+    collision = new CustomCollision(true, @onCollision)
 
     # Bounce off edges, with padding
     bound = 10.0
@@ -158,7 +155,6 @@ class App
       
       # Make it collidable
       collision.pool.push particle
-      ballcollision.pool.push particle
       
       # Apply behaviours
       particle.behaviours.push antiGravity, collision, tophalf
@@ -175,7 +171,8 @@ class App
     @ball.colour = '000000'
 
     # Ball behaviours
-    @ball.behaviours.push edge, ballcollision
+    collision.pool.push @ball
+    @ball.behaviours.push edge, collision
     @physics.particles.push @ball
 
     ################################
@@ -187,9 +184,9 @@ class App
     @paddle.colour = '000000'
 
     # Paddle behaviour
+    collision.pool.push @paddle
     @paddlebehaviour = new PaddleBehaviour(@paddle.pos.x, @paddle.pos.y)
-    @paddle.behaviours.push edge, @paddlebehaviour
-    ballcollision.pool.push @paddle
+    @paddle.behaviours.push edge, collision, @paddlebehaviour
     @physics.particles.push @paddle
 
   gameDraw: =>
@@ -226,11 +223,11 @@ class App
       @paddlebehaviour.desired_x = rect.x + rect.width / 2
 
   onCollision: (particle, other) =>
-    # if particle == @ball
-    console.log "collision"
-    console.log particle
-    console.log other
-    debugger
+    if particle == @ball or other == @ball
+      console.log "collision"
+      console.log particle
+      console.log other
+      debugger
 
   onTrackEvent: (event) =>
 
