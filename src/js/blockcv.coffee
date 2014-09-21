@@ -69,14 +69,9 @@ class CustomCollision extends Collision
 
         if o is @ball
 
-          # Ball <--> particle
-          console.log 'ball'
-          
+          # Ball <--> particle          
           # bounce
-          o.vel.x = -o.vel.x
-          o.vel.y = -o.vel.y
-          o.acc.x = -o.acc.x
-          o.acc.y = -o.acc.y
+          o.old.pos.y = o.pos.y + o.vel.y
 
           # Fire callback if defined.
           @callback?(p, o, overlap)
@@ -107,24 +102,25 @@ class EdgeBouncy extends EdgeBounce
   apply: (p, dt, index) ->
 
     if p.pos.x - p.radius < @min.x
+      # Left
       p.pos.x = @min.x + p.radius
-      p.vel.x = -p.vel.x
-      p.acc.x = -p.acc.x
+      p.old.pos.x = p.pos.x + p.vel.x
 
     else if p.pos.x + p.radius > @max.x
+      # Right
       p.pos.x = @max.x - p.radius
-      p.vel.x = -p.vel.x
-      p.acc.x = -p.acc.x
+      p.old.pos.x = p.pos.x + p.vel.x
 
     if p.pos.y - p.radius < @min.y
+      # Top
       p.pos.y = @min.y + p.radius
-      p.vel.y = -p.vel.y
-      p.acc.y = -p.acc.y
+      p.old.pos.y = p.pos.y + p.vel.y
 
     else if p.pos.y + p.radius > @max.y
-      p.pos.y = @max.y - p.radius
-      p.vel.y = -p.vel.y
-      p.acc.y = -p.acc.y
+      if p is @ball
+        # Bottom
+        console.log 'out'
+        @missed()
 
 
 class App
@@ -170,6 +166,8 @@ class App
     min = new Vector bound, bound
     max = new Vector @game.width - bound, @game.height - bound
     edge = new EdgeBouncy min, max
+    edge.missed = @onMissed
+    paddleedges = new EdgeBounce min, max
 
     # Keep balls in top third
     tophalfmax = new Vector @game.width - bound, @game.height / 3
@@ -229,11 +227,12 @@ class App
     # Paddle behaviour
     @collision.pool.push @paddle
     @paddlebehaviour = new PaddleBehaviour(@paddle.pos.x, @paddle.pos.y)
-    @paddle.behaviours.push edge, @collision, @paddlebehaviour
+    @paddle.behaviours.push paddleedges, @collision, @paddlebehaviour
     @physics.particles.push @paddle
 
     @collision.ball = @ball
     @collision.paddle = @paddle
+    edge.ball = @ball
 
   gameDraw: =>
     
@@ -304,6 +303,8 @@ class App
 
     @ball.acc.set 4000, -4000
 
+  onMissed: =>
+    console.log 'missed!'
 
     # ballbehaviour = new BallSpeed()
     # @ball.behaviours.push 
