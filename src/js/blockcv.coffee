@@ -2,6 +2,32 @@ class Paddle extends Particle
 
 class PaddleBehaviour extends Behaviour
 
+  constructor: (@desired_x = 200, @set_y = 200) ->
+    @speed = 500
+    super
+
+  apply: (p, dt, index) ->
+
+    # Move paddle along x
+    dx = p.pos.x - @desired_x
+
+    console.log dx
+
+    if dx == 0
+      p.vel.x = 0
+      p.acc.x = 0
+    else if dx > 0
+      p.acc.x = -@speed
+    else
+      p.acc.x = @speed
+
+    # Fix Y
+    p.pos.y = @set_y
+    p.vel.y = 0
+    p.acc.y = 0
+
+    super
+
 class App
   constructor: ->
     video = document.getElementById("video")
@@ -23,6 +49,7 @@ class App
 
     # Use Sketch.js to make life much easier
     @game = Sketch.create
+      autopause: false
       fullscreen: false
       width: 400
       height: 400
@@ -52,7 +79,7 @@ class App
       
       size = 1 + Math.random()
       particle = new Particle(size)
-      position = new Vector(random(@width), random(@height))
+      position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
       particle.moveTo position
       particle.colour = Random.item PARTICLE_COLOURS
@@ -68,7 +95,7 @@ class App
 
     ################################
     # Set up ball
-    @ball = new Particle(1)
+    @ball = new Particle(0.5)
     @ball.setRadius @ball.mass * 8
     centre = new Vector(@game.width/2, @game.height/2)
     @ball.moveTo centre
@@ -88,9 +115,10 @@ class App
     @paddle.colour = '000000'
 
     # Paddle behaviour
-    paddlebehaviour = new PaddleBehaviour()
-    @paddle.behaviours.push paddlebehaviour, collision, edge
+    @paddlebehaviour = new PaddleBehaviour(@game.width / 2, @game.height - 30)
+    @paddle.behaviours.push edge, @paddlebehaviour
     collision.pool.push @paddle
+    @physics.particles.push @paddle
 
   gameDraw: =>
     
@@ -100,6 +128,10 @@ class App
     # Render particles
     for particle in @physics.particles
 
+      # Skip drawing paddle
+      if particle is @paddle
+        continue
+
       @game.beginPath()
       @game.arc particle.pos.x, particle.pos.y, particle.radius, 0, Math.PI * 2
       @game.fillStyle = '#' + (particle.colour or 'FFFFFF')
@@ -107,12 +139,10 @@ class App
 
     # Draw paddle
     p = @paddle
-    width = @paddle.radius
-
     @game.strokeStyle = 'rgba(0,0,0,1)'
     @game.lineWidth = 10
-    @game.moveTo(p.pos.x - width/2, p.pos.y)
-    @game.lineTo(p.pos.x + width/2, p.pos.y)
+    @game.moveTo(p.pos.x - p.radius, p.pos.y)
+    @game.lineTo(p.pos.x + p.radius, p.pos.y)
     @game.stroke()
 
 
