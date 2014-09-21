@@ -3,7 +3,7 @@ class Paddle extends Particle
 class PaddleBehaviour extends Behaviour
 
   constructor: (@desired_x = 200, @set_y = 200) ->
-    @speed = 500
+    @speed = 20
     super
 
   apply: (p, dt, index) ->
@@ -16,17 +16,13 @@ class PaddleBehaviour extends Behaviour
     if dx == 0
       p.vel.x = 0
       p.acc.x = 0
-    else if dx > 0
-      p.acc.x = -@speed
     else
-      p.acc.x = @speed
+      p.acc.x = -@speed * dx
 
     # Fix Y
     p.pos.y = @set_y
     p.vel.y = 0
     p.acc.y = 0
-
-    super
 
 class App
   constructor: ->
