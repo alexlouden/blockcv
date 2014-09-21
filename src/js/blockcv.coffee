@@ -39,14 +39,18 @@ class App
     max = new Vector @game.width - bound, @game.height - bound
     edge = new EdgeBounce min, max
 
+    # Particle colours
+    PARTICLE_COLOURS = ['DC0048', 'F14646', '4AE6A9', '7CFF3F', '4EC9D9', 'E4272E']
+
+    # Set up particles
     for i in [0..30]
       
-      # Create a particle
       size = 1 + Math.random()
       particle = new Particle(size)
       position = new Vector(random(@width), random(@height))
       particle.setRadius particle.mass * 8
       particle.moveTo position
+      particle.colour = Random.item PARTICLE_COLOURS
       
       # Make it collidable
       collision.pool.push particle
@@ -57,7 +61,17 @@ class App
       # Add to the simulation
       @physics.particles.push particle
 
-    @game.fillStyle = "#ff0000"
+    # Set up ball
+    @ball = new Particle(1)
+    @ball.setRadius @ball.mass * 8
+    centre = new Vector(@game.width/2, @game.height/2)
+    @ball.moveTo centre
+    @ball.colour = '000000'
+
+    # Ball behaviours
+    collision.pool.push @ball
+    @ball.behaviours.push collision, edge
+    @physics.particles.push @ball
 
   gameDraw: =>
     
@@ -66,9 +80,10 @@ class App
     
     # Render particles
     for particle in @physics.particles
-      
+
       @game.beginPath()
       @game.arc particle.pos.x, particle.pos.y, particle.radius, 0, Math.PI * 2
+      @game.fillStyle = '#' + (particle.colour or 'FFFFFF')
       @game.fill()
 
   onTrackEvent: (event) =>
