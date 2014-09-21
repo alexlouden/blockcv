@@ -1,4 +1,5 @@
 class Paddle extends Particle
+class Ball extends Particle
 
 class PaddleBehaviour extends Behaviour
 
@@ -21,6 +22,71 @@ class PaddleBehaviour extends Behaviour
     p.pos.y = @set_y
     p.vel.y = 0
     p.acc.y = 0
+
+class BallSpeed extends Behaviour
+
+  apply: (p, dt, index) ->
+    
+    # if p.acc.x == 0 and p.acc.y == 0
+    #   # Zero motion - launch towards top right
+    #   p.acc.set 100, -100
+
+    # if -min < p.vel.y < min
+    #   p.vel.x = 100 if p.acc.x < 0 then -100 else 100
+
+class BallCollision extends Collision
+
+  constructor: (@useMass = yes, @callback = null) ->
+
+    # Pool of collidable particles.
+    @pool = []
+
+    # Delta between particle positions.
+    @_delta = new Vector()
+
+    super
+
+  apply: (p, dt, index) ->
+
+    # Check pool for collisions.
+    for o in @pool[index..] when o isnt p
+
+      # Delta between particles positions.
+      (@_delta.copy o.pos).sub p.pos
+
+      # Squared distance between particles.
+      distSq = @_delta.magSq()
+
+      # Sum of both radii.
+      radii = p.radius + o.radius
+
+      console.log distSq
+      console.log radii * radii
+
+      # Check if particles collide.
+      if distSq <= radii * radii
+
+        # # Compute real distance.
+        # dist = Math.sqrt distSq
+
+        # # Determine overlap.
+        # overlap = radii - dist
+        # overlap += 0.5
+
+        # # Total mass.
+        # mt = p.mass + o.mass
+
+        # # Distribute collision responses.
+        # r1 = if @useMass then o.mass / mt else 0.5
+        # r2 = if @useMass then p.mass / mt else 0.5
+
+        # # Move particles so they no longer overlap.
+        # p.pos.add (@_delta.clone().norm().scale overlap * -r1)
+        # o.pos.add (@_delta.norm().scale overlap * r2)
+
+        # Fire callback if defined.
+        @callback?(p, o, overlap)
+
 
 class App
   constructor: ->
@@ -49,23 +115,35 @@ class App
     @game.setup = @gameSetup
     @game.draw = @gameDraw
 
+    @state = 'waiting'
+
   gameSetup: =>
 
-    up = new Vector 0.0, -98.0
+    up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
     
-    collision = new Collision()
+    collision = new Collision
+    ballcollision = new BallCollision(true, @onCollision)
 
     # Bounce off edges, with padding
     bound = 10.0
     min = new Vector bound, bound
     max = new Vector @game.width - bound, @game.height - bound
     edge = new EdgeBounce min, max
+
+    # Keep balls in top third
     tophalfmax = new Vector @game.width - bound, @game.height / 3
     tophalf = new EdgeBounce min, tophalfmax
 
     # Particle colours
-    PARTICLE_COLOURS = ['DC0048', 'F14646', '4AE6A9', '7CFF3F', '4EC9D9', 'E4272E']
+    PARTICLE_COLOURS = [
+      'DC0048',
+      'F14646',
+      '4AE6A9',
+      '7CFF3F',
+      '4EC9D9',
+      'E4272E'
+    ]
 
     ################################
     # Set up particles
@@ -80,6 +158,7 @@ class App
       
       # Make it collidable
       collision.pool.push particle
+      ballcollision.pool.push particle
       
       # Apply behaviours
       particle.behaviours.push antiGravity, collision, tophalf
@@ -89,15 +168,14 @@ class App
 
     ################################
     # Set up ball
-    @ball = new Particle(0.5)
+    @ball = new Ball(0.5)
     @ball.setRadius @ball.mass * 8
     centre = new Vector(@game.width/2, @game.height/2)
     @ball.moveTo centre
     @ball.colour = '000000'
 
     # Ball behaviours
-    collision.pool.push @ball
-    @ball.behaviours.push collision, edge
+    @ball.behaviours.push edge, ballcollision
     @physics.particles.push @ball
 
     ################################
@@ -109,9 +187,9 @@ class App
     @paddle.colour = '000000'
 
     # Paddle behaviour
-    @paddlebehaviour = new PaddleBehaviour(@game.width / 2, @game.height - 30)
+    @paddlebehaviour = new PaddleBehaviour(@paddle.pos.x, @paddle.pos.y)
     @paddle.behaviours.push edge, @paddlebehaviour
-    collision.pool.push @paddle
+    ballcollision.pool.push @paddle
     @physics.particles.push @paddle
 
   gameDraw: =>
@@ -119,7 +197,7 @@ class App
     # Step the simulation
     @physics.step()
     
-    # Render particles
+    # Draw particles
     for particle in @physics.particles
 
       # Skip drawing paddle
@@ -147,6 +225,12 @@ class App
       @game.strokeRect rect.x, rect.y, rect.width, rect.height
       @paddlebehaviour.desired_x = rect.x + rect.width / 2
 
+  onCollision: (particle, other) =>
+    # if particle == @ball
+    console.log "collision"
+    console.log particle
+    console.log other
+    debugger
 
   onTrackEvent: (event) =>
 
@@ -154,14 +238,24 @@ class App
       @target_rectangle = false
       return
 
-    console.log event.data
-
-    if event.data.length > 1
-      console.log 'more than one rect'
+    # if event.data.length > 1
+    #   console.log 'multiple rectangles, choosing first'
 
     rect = event.data[0]
     @target_rectangle = rect
 
+    if @state == 'waiting'
+      @onGameStart()
+
+  onGameStart: =>
+    console.log 'Starting game'
+    @state = 'playing'
+
+    @ball.acc.set 1000, -1000
+
+
+    # ballbehaviour = new BallSpeed()
+    # @ball.behaviours.push 
 
 $ ->
   window.app = new App()
