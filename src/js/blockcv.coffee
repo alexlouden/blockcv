@@ -16,7 +16,7 @@ class PaddleBehaviour extends Behaviour
     # Move paddle along x
     dx = p.pos.x - @desired_x
 
-    if dx == 0
+    if Math.abs (dx) < 30
       p.vel.x = 0
       p.acc.x = 0
     else
