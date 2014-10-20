@@ -13,14 +13,8 @@ class PaddleBehaviour extends Behaviour
 
   apply: (p, dt, index) ->
 
-    # Move paddle along x
-    dx = p.pos.x - @desired_x
-
-    if Math.abs (dx) < 30
-      p.vel.x = 0
-      p.acc.x = 0
-    else
-      p.acc.x = -@speed * dx
+    # Move paddle to X
+    p.pos.x = @desired_x
 
     # Fix Y
     p.pos.y = @set_y
