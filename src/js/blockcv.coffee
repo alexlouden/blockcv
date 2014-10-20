@@ -2,7 +2,12 @@ Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
 class Block extends Particle
+
 class Paddle extends Particle
+  constructor: ->
+    @last_bounce = Date.now()
+    super
+
 class Ball extends Particle
 
 class PaddleBehaviour extends Behaviour
@@ -61,7 +66,10 @@ class CustomCollision extends Collision
           # above paddle
           if o.pos.y - 10 < p.pos.y
             # bounce
-            p.old.pos.y = p.pos.y + p.vel.y
+            if o.last_bounce? and Math.abs(o.last_bounce - Date.now()) >= 1000
+              p.old.pos.y = p.pos.y + p.vel.y
+
+            o.last_bounce = Date.now()
         continue
 
       # Sum of both radii
@@ -130,7 +138,10 @@ class App
   constructor: ->
     video = document.getElementById("video")
 
-    tracker = new tracking.ColorTracker("magenta")
+    tracking.ColorTracker.registerColor 'redish', (r, g, b) ->
+      return r > 100 and g < 30 and b < 30
+
+    tracker = new tracking.ColorTracker("redish")
     # can also use custom colours
     # See http://trackingjs.com/api/ColorTracker.js.html#line366
 
@@ -307,10 +318,16 @@ class App
     @ball.acc.set 4000, -4000
 
   onMissed: =>
-    console.log 'missed!'
+    @printLog 'You missed!'
+    centre = new Vector(@game.width/2, @game.height/2)
 
+    @ball.moveTo centre
+    @state = 'waiting'
     # ballbehaviour = new BallSpeed()
     # @ball.behaviours.push
+
+  printLog: (log) =>
+    $('#event_log').append "<p>#{log}</p>"
 
 $ ->
   window.app = new App()
