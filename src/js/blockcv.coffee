@@ -4,9 +4,6 @@ Array::remove = (obj) ->
 class Block extends Particle
 
 class Paddle extends Particle
-  constructor: ->
-    @last_bounce = Date.now()
-    super
 
 class Ball extends Particle
 
