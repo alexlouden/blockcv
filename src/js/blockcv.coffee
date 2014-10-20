@@ -1,13 +1,3 @@
-tracking.ColorTracker.registerColor "yellow2", (r, g, b) ->
-  threshold = 80
-  dx = r - 255
-  dy = g - 255
-  dz = b - 0
-
-  if (r - b) >= threshold and (g - b) >= threshold
-    if dx * dx + dy * dy + dz * dz < 10000
-      return true
-
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
@@ -146,7 +136,7 @@ class App
   constructor: ->
     video = document.getElementById("video")
 
-    tracker = new tracking.ColorTracker("yellow2")
+    tracker = new tracking.ColorTracker("magenta")
     # can also use custom colours
     # See http://trackingjs.com/api/ColorTracker.js.html#line366
 
