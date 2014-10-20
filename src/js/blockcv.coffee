@@ -24,7 +24,7 @@ class PaddleBehaviour extends Behaviour
 class BallSpeed extends Behaviour
 
   # apply: (p, dt, index) ->
-    
+
     # if p.acc.x == 0 and p.acc.y == 0
     #   # Zero motion - launch towards top right
     #   p.acc.set 100, -100
@@ -72,7 +72,7 @@ class CustomCollision extends Collision
 
         if o is @ball
 
-          # Ball <--> particle          
+          # Ball <--> particle
           # bounce
           o.old.pos.y = o.pos.y + o.vel.y
 
@@ -161,7 +161,7 @@ class App
 
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
-    
+
     @collision = new CustomCollision(true, @onCollision)
 
     # Bounce off edges, with padding
@@ -189,20 +189,20 @@ class App
     ################################
     # Set up particles
     for i in [0..30]
-      
+
       size = 1 + Math.random()
       particle = new Block(size)
       position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
       particle.moveTo position
       particle.colour = Random.item PARTICLE_COLOURS
-      
+
       # Make it collidable
       @collision.pool.push particle
-      
+
       # Apply behaviours
       particle.behaviours.push antiGravity, @collision, tophalf
-      
+
       # Add to the simulation
       @physics.particles.push particle
 
@@ -238,10 +238,10 @@ class App
     edge.ball = @ball
 
   gameDraw: =>
-    
+
     # Step the simulation
     @physics.step()
-    
+
     # Draw particles
     for particle in @physics.particles
 
@@ -272,7 +272,7 @@ class App
 
   onCollision: (particle, other) =>
     # ball <--> particle collision?
-    
+
     # console.log "collision"
     # console.log particle
     # console.log other
@@ -310,7 +310,7 @@ class App
     console.log 'missed!'
 
     # ballbehaviour = new BallSpeed()
-    # @ball.behaviours.push 
+    # @ball.behaviours.push
 
 $ ->
   window.app = new App()
