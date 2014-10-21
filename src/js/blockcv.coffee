@@ -62,11 +62,10 @@ class CustomCollision extends Collision
         if o.pos.x - o.radius < p.pos.x < o.pos.x + o.radius
           # above paddle
           if o.pos.y - 10 < p.pos.y
-            # bounce
-            if o.last_bounce? and Math.abs(o.last_bounce - Date.now()) >= 1000
+            # bounce only if ball is travelling downward.
+            if p.vel.y > 0
               p.old.pos.y = p.pos.y + p.vel.y
 
-            o.last_bounce = Date.now()
         continue
 
       # Sum of both radii
