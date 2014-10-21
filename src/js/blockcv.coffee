@@ -10,13 +10,14 @@ class Ball extends Particle
 class PaddleBehaviour extends Behaviour
 
   constructor: (@desired_x = 200, @set_y = 200) ->
-    @speed = 20
+    @f = 0.9
     super
 
   apply: (p, dt, index) ->
 
-    # Move paddle to X
-    p.pos.x = @desired_x
+    # Move paddle along x
+    p.pos.x = p.pos.x * @f + @desired_x * (1 - @f)
+    p.old.pos.x = p.pos.x
 
     # Fix Y
     p.pos.y = @set_y
