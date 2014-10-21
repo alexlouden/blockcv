@@ -287,10 +287,6 @@ class App
   onCollision: (particle, other) =>
     # ball <--> particle collision?
 
-    # console.log "collision"
-    # console.log particle
-    # console.log other
-
     @physics.particles = @physics.particles.remove particle
     @collision.pool = @collision.pool.remove particle
 
