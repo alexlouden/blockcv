@@ -66,6 +66,12 @@ class CustomCollision extends Collision
             if p.vel.y > 0
               p.old.pos.y = p.pos.y + p.vel.y
 
+              paddleX = p.pos.x - o.pos.x
+              if (paddleX < 0 and p.vel.x > 0) or (paddleX > 0 and p.vel.x < 0)
+                p.old.pos.x = p.pos.x + p.vel.x
+
+              p.acc.x = (paddleX / 50) * 5000
+
         continue
 
       # Sum of both radii
