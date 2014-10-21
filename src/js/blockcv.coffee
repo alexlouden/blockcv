@@ -17,12 +17,15 @@ class PaddleBehaviour extends Behaviour
 
     # Move paddle along x
     dx = p.pos.x - @desired_x
+    console.log dx
 
-    if Math.abs (dx) < 30
+    speed = 100
+
+    if (Math.abs (dx)) < 30
       p.vel.x = 0
       p.acc.x = 0
     else
-      p.acc.x = -@speed * dx
+      p.acc.x = -speed * dx
 
     # Fix Y
     p.pos.y = @set_y
