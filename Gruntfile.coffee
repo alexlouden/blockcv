@@ -1,8 +1,8 @@
 module.exports = (grunt) ->
   grunt.initConfig
-  
+
     pkg: grunt.file.readJSON("package.json")
-    
+
     # Check Coffee
     coffeelint:
       app: ['src/**/*.coffee']
@@ -12,18 +12,18 @@ module.exports = (grunt) ->
         'max_line_length':
           value: 100
           level: 'warn'
-          
+
     # Coffee -> JS
     coffee:
       build:
         files:
           'dist/js/blockcv.js': 'src/**/*.coffee'
-      
+
         options:
           sourceMap: true
           join: true
           bare: true
-          
+
     # Copy JS
     copy:
       js:
@@ -31,7 +31,7 @@ module.exports = (grunt) ->
           [{expand: true, cwd: 'src/js/', src: ['*.js'], dest: 'dist/js/', filter: 'isFile'},
            {expand: true, cwd: 'src/js/', src: ['*.coffee'], dest: 'dist/src/js', filter: 'isFile'},
            {expand: true, cwd: 'src/images/', src: ['*'], dest: 'dist/images/', filter: 'isFile'}]
-          
+
     # SASS -> CSS
     compass:
       options:
@@ -39,7 +39,7 @@ module.exports = (grunt) ->
         cssDir: "dist/css"
         raw: 'preferred_syntax = :sass\n'
       debugsass: true
-    
+
     # Minify HTML
     htmlmin:
       dist:
@@ -49,14 +49,14 @@ module.exports = (grunt) ->
           removeEmptyAttributes: true,
           removeCommentsFromCDATA: true,
           removeRedundantAttributes: true,
-          collapseBooleanAttributes: true 
+          collapseBooleanAttributes: true
         files:
           'dist/index.html': 'src/index.html'
 
     # Clean directories
     clean:
       build: ["dist"]
-    
+
     # Server
     connect:
       server:
@@ -79,7 +79,7 @@ module.exports = (grunt) ->
       html:
         files: ["src/**/*.html"]
         tasks: ["htmlmin"]
-        
+
   grunt.loadNpmTasks "grunt-contrib-compass"
   grunt.loadNpmTasks "grunt-coffeelint"
   grunt.loadNpmTasks "grunt-contrib-coffee"
@@ -89,10 +89,10 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-htmlmin"
   grunt.loadNpmTasks "grunt-contrib-connect"
   grunt.loadNpmTasks "grunt-contrib-watch"
-  
+
   grunt.registerTask "build", ["coffeelint", "coffee", "copy", "compass", "htmlmin"]
-  
+
   grunt.registerTask "dev", ["clean:build", "build", "connect", "watch"]
   grunt.registerTask "default", ["dev"]
-  
-  
+
+
