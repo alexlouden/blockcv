@@ -2,6 +2,8 @@ BALL_SIZE_MIN = .8
 BALL_SIZE_VARIANCE = 1.5
 NUM_BALLS = 40
 
+WORKER = null
+
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
@@ -132,6 +134,51 @@ class EdgeBouncy extends EdgeBounce
         @missed()
 
 
+class FragmentEffects
+  constructor: ->
+    @stage = new createjs.Stage 'fragment_canvas'
+    @canvas = $('#fragment_canvas')
+    createjs.Ticker.addEventListener 'tick', @handleTick
+
+  handleTick: =>
+    i = 0
+    while i < @stage.getNumChildren()
+      frag = @stage.getChildAt i
+
+      frag.x += frag.vel.x
+      frag.y += frag.vel.y
+      frag.alpha -= 0.1
+
+      if frag.x > @canvas.width() or frag.x < 0
+        frag.vel.x = -frag.vel.x
+
+      if frag.y > @canvas.height() or frag.y < 0
+        frag.vel.y = -frag.vel.y
+
+      if frag.alpha <= 0
+        @stage.removeChildAt i
+
+      @stage.update()
+      i += 1
+
+  makeExplosion: (pos) =>
+    console.log 'explsotion!'
+    for i in [1..30]
+      circle = new createjs.Shape()
+      col = -> Math.round(Math.random() * 255)
+      circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
+      circle.x = pos.x
+      circle.y = pos.y
+
+      # now to set the random velocity
+      angle = Math.random() * 360 * (Math.PI / 180)
+      mag = Math.random() * 15
+      circle.vel =
+        x: Math.cos(angle) * mag
+        y: Math.sin(angle) * mag
+
+      @stage.addChild circle
+
 class App
   constructor: ->
     video = document.getElementById("video")
@@ -147,6 +194,8 @@ class App
       camera: true
 
     tracker.on "track", @onTrackEvent
+
+    @fragment_effects = new FragmentEffects()
 
     # Create a physics instance which uses the Verlet integration method
     @physics = new Physics
@@ -293,6 +342,10 @@ class App
 
     @physics.particles = @physics.particles.remove particle
     @collision.pool = @collision.pool.remove particle
+
+    @fragment_effects.makeExplosion
+      x: particle.pos.x
+      y: particle.pos.y
 
     # Delete particle
     # remove from pools
