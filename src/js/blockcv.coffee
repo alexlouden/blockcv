@@ -155,13 +155,15 @@ class App
     @physics.integrator = new Verlet()
 
     # Use Sketch.js to make life much easier
+    canvas_scale = 0.5
+
     @game = Sketch.create
       autopause: false
-      fullscreen: true
-      # width: 400
-      # height: 400
+      fullscreen: false
+      width: $('body').width() * canvas_scale
+      height: $('body').height() * canvas_scale
 
-    @game.scale = 5
+    @game.scale = 1 / canvas_scale
     @game.setup = @gameSetup
     @game.draw = @gameDraw
 
@@ -321,6 +323,7 @@ class App
     console.log 'Starting game'
     @state = 'playing'
 
+    # TODO randomize initial velocity
     @ball.acc.set 4000, -4000
 
   onMissed: =>
