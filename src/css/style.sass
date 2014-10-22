@@ -8,10 +8,20 @@ body
   bottom: 0
   top: 0
 
-video, canvas, #game
-  width: 400px
-  height: 400px
-  position: relative
+video, canvas
+  position: absolute
+  top: 0
+  left: 0
+  height: 100%
+  width: 100%
+
+video
+  z-index: 4
+  opacity: 0.1
+  width: 20%
+  height: auto
+  transform: scale(-5, 5) translateX(-100%)
+  transform-origin: top left
+
+canvas
   z-index: 5
-  display: inline-block
-  border: 1px solid black

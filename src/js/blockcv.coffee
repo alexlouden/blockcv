@@ -157,10 +157,11 @@ class App
     # Use Sketch.js to make life much easier
     @game = Sketch.create
       autopause: false
-      fullscreen: false
-      width: 400
-      height: 400
+      fullscreen: true
+      # width: 400
+      # height: 400
 
+    @game.scale = 5
     @game.setup = @gameSetup
     @game.draw = @gameDraw
 
@@ -306,6 +307,11 @@ class App
     #   console.log 'multiple rectangles, choosing first'
 
     rect = event.data[0]
+    rect.height = rect.height * @game.scale
+    rect.width = rect.width * @game.scale
+    rect.x = @game.width - rect.x * @game.scale - rect.width
+    rect.y = rect.y * @game.scale
+
     @target_rectangle = rect
 
     if @state == 'waiting'
