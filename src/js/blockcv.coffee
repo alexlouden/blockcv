@@ -1,5 +1,6 @@
-BALL_SIZE_MIN = .5
-BALL_SIZE_VARIANCE = 2.2
+BALL_SIZE_MIN = .8
+BALL_SIZE_VARIANCE = 1.5
+NUM_BALLS = 40
 
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
@@ -28,15 +29,6 @@ class PaddleBehaviour extends Behaviour
     p.acc.y = 0
 
 class BallSpeed extends Behaviour
-
-  # apply: (p, dt, index) ->
-
-    # if p.acc.x == 0 and p.acc.y == 0
-    #   # Zero motion - launch towards top right
-    #   p.acc.set 100, -100
-
-    # if -min < p.vel.y < min
-    #   p.vel.x = 100 if p.acc.x < 0 then -100 else 100
 
 class CustomCollision extends Collision
 
@@ -178,6 +170,13 @@ class App
 
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
+    @ball = new Ball(0.5)
+
+    # powerups
+    # ball_attraction = new Attraction @ball.pos, 200, 2000
+    # ball_repulsion = new Attraction @ball.pos, 200, -2000
+    # top_middle = new Vector(@game.width / 2, -100.0)
+    # top_attraction = new Attraction top_middle, 500, 2000
 
     @collision = new CustomCollision(true, @onCollision)
 
@@ -205,7 +204,7 @@ class App
 
     ################################
     # Set up particles
-    for i in [0..30]
+    for i in [0..NUM_BALLS]
 
       size = BALL_SIZE_MIN + Math.random() * BALL_SIZE_VARIANCE
       particle = new Block(size)
@@ -225,7 +224,6 @@ class App
 
     ################################
     # Set up ball
-    @ball = new Ball(0.5)
     @ball.setRadius @ball.mass * 8
     centre = new Vector(@game.width/2, @game.height/2)
     @ball.moveTo centre
