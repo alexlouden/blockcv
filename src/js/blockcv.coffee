@@ -1,3 +1,6 @@
+BALL_SIZE_MIN = .5
+BALL_SIZE_VARIANCE = 2.2
+
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
@@ -198,7 +201,7 @@ class App
     # Set up particles
     for i in [0..30]
 
-      size = 1 + Math.random()
+      size = BALL_SIZE_MIN + Math.random() * BALL_SIZE_VARIANCE
       particle = new Block(size)
       position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
