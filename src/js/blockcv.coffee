@@ -211,6 +211,8 @@ class App
       # height: $('body').height()
 
     @game.scale = 5
+    $('#fragment_canvas').attr('height', @game.height)
+    $('#fragment_canvas').attr('width', @game.width)
     @game.setup = @gameSetup
     @game.draw = @gameDraw
 
