@@ -318,16 +318,13 @@ class App
     @ball.acc.set 4000, -4000
 
   onMissed: =>
-    @printLog 'You missed!'
+    console.log 'You missed!'
     centre = new Vector(@game.width/2, @game.height/2)
 
     @ball.moveTo centre
     @state = 'waiting'
     # ballbehaviour = new BallSpeed()
     # @ball.behaviours.push
-
-  printLog: (log) =>
-    $('#event_log').append "<p>#{log}</p>"
 
 $ ->
   window.app = new App()
