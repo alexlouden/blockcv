@@ -203,16 +203,19 @@ class App
 
     @physics.integrator = new Verlet()
 
+    canvas_scale = $('body').width() / 500
+
     # Use Sketch.js to make life much easier
     @game = Sketch.create
       autopause: false
-      fullscreen: true
-      # width: $('body').width()
-      # height: $('body').height()
+      fullscreen: false
+      width: $('body').width() / canvas_scale
+      height: $('body').height() / canvas_scale
 
-    @game.scale = 5
     $('#fragment_canvas').attr('height', @game.height)
     $('#fragment_canvas').attr('width', @game.width)
+
+    @game.scale = 5 / canvas_scale
     @game.setup = @gameSetup
     @game.draw = @gameDraw
 
