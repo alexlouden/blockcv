@@ -164,6 +164,8 @@ class FragmentEffects
   makeExplosion: (pos) =>
     console.log 'explsotion!'
     for i in [1..30]
+      if @stage.getNumChildren() > 50
+        return
       circle = new createjs.Shape()
       col = -> Math.round(Math.random() * 255)
       circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
