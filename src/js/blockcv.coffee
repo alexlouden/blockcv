@@ -7,7 +7,7 @@ Array::remove = (obj) ->
 
 class Block extends Particle
   constructor: () ->
-    @tankiness = 1
+    @fragility = 1
     super
 
 class Paddle extends Particle
@@ -283,7 +283,7 @@ class App
 
       size = BALL_SIZE_MIN + Math.random() * BALL_SIZE_VARIANCE
       particle = new Block(size)
-      particle.tankiness = 1 + Math.floor ( Math.random() * 5 )
+      particle.fragility = 1 + Math.floor ( Math.random() * 5 )
       position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
       particle.moveTo position
@@ -364,8 +364,9 @@ class App
   onCollision: (particle, other) =>
     # ball <--> particle collision?
 
-    particle.tankiness -= 1 # Ball loses health!
-    if particle.tankiness > 0
+    particle.fragility -= 1 # Ball loses health!
+    particle.setRadius particle.mass * (2 + particle.fragility)
+    if particle.fragility > 0
       return
 
     @physics.particles = @physics.particles.remove particle
