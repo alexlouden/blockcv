@@ -2,12 +2,13 @@ BALL_SIZE_MIN = .8
 BALL_SIZE_VARIANCE = 1.5
 NUM_BALLS = 40
 
-WORKER = null
-
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
 class Block extends Particle
+  constructor: () ->
+    @tankiness = 1
+    super
 
 class Paddle extends Particle
 
@@ -134,52 +135,68 @@ class EdgeBouncy extends EdgeBounce
         @missed()
 
 
-class FragmentEffects
-  constructor: ->
+class EaselStage
+  constructor: (game)->
+    @game = game
     @stage = new createjs.Stage 'fragment_canvas'
+
+    @scoreCounter = new createjs.Text "", "36px Arial", "black"
+    @scoreCounter.x = @scoreCounter.y = 10
+    @stage.addChild @scoreCounter
+
     @canvas = $('#fragment_canvas')
     createjs.Ticker.addEventListener 'tick', @handleTick
 
+  updateScoreCounter: =>
+    @scoreCounter.text = "#{@game.score} points"
+
   handleTick: =>
-    i = 0
-    while i < @stage.getNumChildren()
-      frag = @stage.getChildAt i
+    @updateScoreCounter()
+    setTimeout =>
+      i = 0
+      while i < @stage.getNumChildren()
+        frag = @stage.getChildAt i
+        if frag.text?
+          i += 1
+          continue
 
-      frag.x += frag.vel.x
-      frag.y += frag.vel.y
-      frag.alpha -= 0.1
+        frag.x += frag.vel.x
+        frag.y += frag.vel.y
+        frag.alpha -= 0.1
 
-      if frag.x > @canvas.width() or frag.x < 0
-        frag.vel.x = -frag.vel.x
+        if frag.x > @canvas.width() or frag.x < 0
+          frag.vel.x = -frag.vel.x
 
-      if frag.y > @canvas.height() or frag.y < 0
-        frag.vel.y = -frag.vel.y
+        if frag.y > @canvas.height() or frag.y < 0
+          frag.vel.y = -frag.vel.y
 
-      if frag.alpha <= 0
-        @stage.removeChildAt i
+        if frag.alpha <= 0
+          @stage.removeChildAt i
 
-      @stage.update()
-      i += 1
+        @stage.update()
+        i += 1
+    , 0
 
   makeExplosion: (pos) =>
-    console.log 'explsotion!'
-    for i in [1..30]
-      if @stage.getNumChildren() > 50
-        return
-      circle = new createjs.Shape()
-      col = -> Math.round(Math.random() * 255)
-      circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
-      circle.x = pos.x
-      circle.y = pos.y
+    setTimeout =>
+      for i in [1..30]
+        if @stage.getNumChildren() > 50
+          return
+        circle = new createjs.Shape()
+        col = -> Math.round(Math.random() * 255)
+        circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
+        circle.x = pos.x
+        circle.y = pos.y
 
-      # now to set the random velocity
-      angle = Math.random() * 360 * (Math.PI / 180)
-      mag = Math.random() * 15
-      circle.vel =
-        x: Math.cos(angle) * mag
-        y: Math.sin(angle) * mag
+        # now to set the random velocity
+        angle = Math.random() * 360 * (Math.PI / 180)
+        mag = Math.random() * 15
+        circle.vel =
+          x: Math.cos(angle) * mag
+          y: Math.sin(angle) * mag
 
-      @stage.addChild circle
+        @stage.addChild circle
+    , 0
 
 class App
   constructor: ->
@@ -197,7 +214,8 @@ class App
 
     tracker.on "track", @onTrackEvent
 
-    @fragment_effects = new FragmentEffects()
+    @easel_stage = new EaselStage(this)
+    @score = 0
 
     # Create a physics instance which uses the Verlet integration method
     @physics = new Physics
@@ -265,6 +283,7 @@ class App
 
       size = BALL_SIZE_MIN + Math.random() * BALL_SIZE_VARIANCE
       particle = new Block(size)
+      particle.tankiness = 1 + Math.floor ( Math.random() * 5 )
       position = new Vector(random(@width), random(@height/3))
       particle.setRadius particle.mass * 8
       particle.moveTo position
@@ -345,10 +364,15 @@ class App
   onCollision: (particle, other) =>
     # ball <--> particle collision?
 
+    particle.tankiness -= 1 # Ball loses health!
+    if particle.tankiness > 0
+      return
+
     @physics.particles = @physics.particles.remove particle
     @collision.pool = @collision.pool.remove particle
+    @score += 1
 
-    @fragment_effects.makeExplosion
+    @easel_stage.makeExplosion
       x: particle.pos.x
       y: particle.pos.y
 
