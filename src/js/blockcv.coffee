@@ -14,6 +14,22 @@ class Paddle extends Particle
 
 class Ball extends Particle
 
+class AttractionPowerup extends Attraction
+  constructor: ->
+    @enabled = false
+    @enabled_time = 0
+    super
+
+  apply: ->
+    if Date.now() - @enabled_time > 10000
+      @enabled = false
+
+    if @enabled then super else undefined
+
+  setEnabled: ->
+    @enabled = true
+    @enabled_time = Date.now()
+
 class PaddleBehaviour extends Behaviour
 
   constructor: (@desired_x = 200, @set_y = 200) ->
@@ -248,7 +264,7 @@ class App
     @ball = new Ball(0.5)
 
     # powerups
-    # ball_attraction = new Attraction @ball.pos, 200, 2000
+    @ball_attraction = new AttractionPowerup @ball.pos, 200, 2000
     # ball_repulsion = new Attraction @ball.pos, 200, -2000
     # top_middle = new Vector(@game.width / 2, -100.0)
     # top_attraction = new Attraction top_middle, 500, 2000
@@ -293,7 +309,7 @@ class App
       @collision.pool.push particle
 
       # Apply behaviours
-      particle.behaviours.push antiGravity, @collision, tophalf
+      particle.behaviours.push antiGravity, @collision, tophalf, @ball_attraction
 
       # Add to the simulation
       @physics.particles.push particle
