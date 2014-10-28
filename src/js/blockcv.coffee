@@ -1,18 +1,52 @@
-BALL_SIZE_MIN = .8
-BALL_SIZE_VARIANCE = 1.5
-NUM_BALLS = 40
+BLOCK_SIZE_MIN = .8
+BLOCK_SIZE_VARIANCE = 1.5
+NUM_BLOCKS = 40
 
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
+
+# Particle colours
+PARTICLE_COLOURS = [
+  'DC0048',
+  'F14646',
+  '4AE6A9',
+  '7CFF3F',
+  '4EC9D9',
+  'E4272E'
+]
+
+PARTICLE_MATERIALS = (new THREE.MeshBasicMaterial(c) for c in PARTICLE_COLOURS)
+
 class Block extends Particle
   constructor: () ->
-    @fragility = 1
+
+    size = BLOCK_SIZE_MIN + Math.random() * BLOCK_SIZE_VARIANCE
+
+    @fragility = 1 + Math.floor ( Math.random() * 5 )
+
+    # ThreeJS stuff
+    material = Random.item PARTICLE_MATERIALS
+    geometry = new THREE.BoxGeometry(size, size, size)
+    @mesh = new THREE.Mesh(geometry, material)
+    
     super
+
+    @setRadius @mass * 8
+    position = new Vector(random(@width), random(@height/3))
+    @moveTo position
 
 class Paddle extends Particle
 
 class Ball extends Particle
+  constructor: (size) ->
+    super size
+
+    # black ball
+    material = new THREE.MeshBasicMaterial('000000')
+    geometry = new THREE.BoxGeometry(size, size, size)
+    @mesh = new THREE.Mesh(geometry, material)
+
 
 class AttractionPowerup extends Attraction
   constructor: ->
@@ -236,8 +270,7 @@ class App
     # Create a physics instance which uses the Verlet integration method
     @physics = new Physics
     @physics.viscosity = 0
-
-    @physics.integrator = new Verlet()
+    @physics.integrator = new Verlet
 
     canvas_scale = $('body').width() / 500
 
@@ -251,9 +284,28 @@ class App
     $('#fragment_canvas').attr('height', @game.height)
     $('#fragment_canvas').attr('width', @game.width)
 
+
+    # Three.JS scene
+    aspect = @game.width / @game.height
+    @camera = new THREE.OrthographicCamera(
+      @game.width / -2,
+      @game.width / 2,
+      @game.height / 2,
+      @game.height / -2,
+      1, 10000)
+
+    @scene = new THREE.Scene()
+    @scene.add @camera
+    @renderer = new THREE.WebGLRenderer(alpha: true)
+    @renderer.setSize @game.width, @game.height
+    @renderer.sortObjects = false
+    container = document.getElementById "threejs"
+    container.appendChild @renderer.domElement
+
     @game.scale = 5 / canvas_scale
     @game.setup = @gameSetup
     @game.draw = @gameDraw
+
 
     @state = 'waiting'
 
@@ -283,27 +335,13 @@ class App
     tophalfmax = new Vector @game.width - bound, @game.height / 3
     tophalf = new EdgeBounce min, tophalfmax
 
-    # Particle colours
-    PARTICLE_COLOURS = [
-      'DC0048',
-      'F14646',
-      '4AE6A9',
-      '7CFF3F',
-      '4EC9D9',
-      'E4272E'
-    ]
 
     ################################
     # Set up particles
-    for i in [0..NUM_BALLS]
+    for i in [0..NUM_BLOCKS]
 
-      size = BALL_SIZE_MIN + Math.random() * BALL_SIZE_VARIANCE
-      particle = new Block(size)
-      particle.fragility = 1 + Math.floor ( Math.random() * 5 )
-      position = new Vector(random(@width), random(@height/3))
-      particle.setRadius particle.mass * 8
-      particle.moveTo position
-      particle.colour = Random.item PARTICLE_COLOURS
+      particle = new Block()
+      @scene.add particle.mesh
 
       # Make it collidable
       @collision.pool.push particle
@@ -319,7 +357,6 @@ class App
     @ball.setRadius @ball.mass * 8
     centre = new Vector(@game.width/2, @game.height/2)
     @ball.moveTo centre
-    @ball.colour = '000000'
 
     # Ball behaviours
     @collision.pool.push @ball
@@ -349,17 +386,21 @@ class App
     # Step the simulation
     @physics.step()
 
-    # Draw particles
-    for particle in @physics.particles
+    # Update particle positions
+    for p in @physics.particles
 
-      # Skip drawing paddle
-      if particle is @paddle
+      # Skip paddle
+      if p is @paddle
         continue
 
-      @game.beginPath()
-      @game.arc particle.pos.x, particle.pos.y, particle.radius, 0, Math.PI * 2
-      @game.fillStyle = '#' + (particle.colour or 'FFFFFF')
-      @game.fill()
+      p.mesh.position.x = p.pos.x
+      p.mesh.position.y = p.pos.y
+      p.mesh.position.z = 0
+      p.mesh.matrixAutoUpdate = false
+      p.mesh.updateMatrix()
+
+    # Render blocks in 3d
+    @renderer.render @scene, @camera
 
     # Draw paddle
     p = @paddle
