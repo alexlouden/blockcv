@@ -1,16 +1,19 @@
-BLOCK_SIZE_MIN = 7
-BLOCK_SIZE_MAX = 20
+BLOCK_SIZE_MIN = 10
+BLOCK_SIZE_MAX = 30
 NUM_BLOCKS = 40
 
 BALL_SIZE = 15
 BALL_MASS = 1
-BALL_INITIAL_SPEED = 10000
+BALL_INITIAL_SPEED = 20000
+
+PADDLE_WIDTH = 200
+
+SPHERE_RESOLUTION = 10
 
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
 
 
-# Particle colours
 PARTICLE_COLOURS = [
   0xDC0048,
   0xF14646,
@@ -35,12 +38,26 @@ class Block extends Particle
     super mass
 
     @setRadius radius
-    geometry = new THREE.SphereGeometry(@radius)
+    geometry = new THREE.SphereGeometry(@radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
-    position = new Vector(random(app.game.width), random(app.game.height/3))
+    position = new Vector(random(app.game.width), random(app.game.height / 3))
     @moveTo position
 
 class Paddle extends Particle
+
+  constructor: ->
+    height = 20
+
+    super 10
+    @setRadius PADDLE_WIDTH / 2
+    
+    geometry = new THREE.BoxGeometry(PADDLE_WIDTH, height, 1)
+    material = new THREE.MeshBasicMaterial({color: 0x000000})
+    @mesh = new THREE.Mesh(geometry, material)
+    
+    bottomcentre = new Vector(app.game.width / 2, app.game.height - 30)
+    @moveTo bottomcentre
+
 
 class Ball extends Particle
   constructor: () ->
@@ -49,7 +66,7 @@ class Ball extends Particle
 
     # black ball
     material = new THREE.MeshBasicMaterial({color: 0x000000})
-    geometry = new THREE.SphereGeometry(radius)
+    geometry = new THREE.SphereGeometry(radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
     
     @setRadius radius
@@ -374,11 +391,8 @@ class App
 
     ################################
     # Set up paddle
-    @paddle = new Paddle(10)
-    @paddle.setRadius 50
-    bottomcentre = new Vector(@game.width/2, @game.height - 30)
-    @paddle.moveTo bottomcentre
-    @paddle.colour = '000000'
+    @paddle = new Paddle()
+    @scene.add @paddle.mesh
 
     # Paddle behaviour
     @collision.pool.push @paddle
@@ -398,10 +412,6 @@ class App
     # Update particle positions
     for p in @physics.particles
 
-      # Skip paddle
-      if p is @paddle
-        continue
-
       p.mesh.position.x = p.pos.x
       p.mesh.position.y = p.pos.y
       p.mesh.position.z = 0
@@ -412,12 +422,12 @@ class App
     @renderer.render @scene, @camera
 
     # Draw paddle
-    p = @paddle
-    @game.strokeStyle = 'rgba(0,0,0,1)'
-    @game.lineWidth = 10
-    @game.moveTo(p.pos.x - p.radius, p.pos.y)
-    @game.lineTo(p.pos.x + p.radius, p.pos.y)
-    @game.stroke()
+    # p = @paddle
+    # @game.strokeStyle = 'rgba(0,0,0,1)'
+    # @game.lineWidth = 10
+    # @game.moveTo(p.pos.x - p.radius, p.pos.y)
+    # @game.lineTo(p.pos.x + p.radius, p.pos.y)
+    # @game.stroke()
 
     # rectangle position
     if @target_rectangle
@@ -430,13 +440,15 @@ class App
   onCollision: (particle, other) =>
     # ball <--> particle collision?
 
-    particle.fragility -= 1 # Ball loses health!
-    particle.setRadius particle.mass * (2 + particle.fragility)
-    if particle.fragility > 0
-      return
+    # particle.fragility -= 1 # Ball loses health!
+    # particle.mesh.scale = particle.radius / (2 + particle.fragility)
+    # if particle.fragility > 0
+      # return
 
     @physics.particles = @physics.particles.remove particle
+    @scene.remove particle.mesh
     @collision.pool = @collision.pool.remove particle
+
     @score += 1
 
     @easel_stage.makeExplosion
