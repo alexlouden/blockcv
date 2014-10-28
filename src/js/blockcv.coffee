@@ -8,15 +8,15 @@ Array::remove = (obj) ->
 
 # Particle colours
 PARTICLE_COLOURS = [
-  'DC0048',
-  'F14646',
-  '4AE6A9',
-  '7CFF3F',
-  '4EC9D9',
-  'E4272E'
+  0xDC0048,
+  0xF14646,
+  0x4AE6A9,
+  0x7CFF3F,
+  0x4EC9D9,
+  0xE4272E
 ]
 
-PARTICLE_MATERIALS = (new THREE.MeshBasicMaterial(c) for c in PARTICLE_COLOURS)
+PARTICLE_MATERIALS = (new THREE.MeshBasicMaterial({color: c}) for c in PARTICLE_COLOURS)
 
 class Block extends Particle
   constructor: () ->
@@ -27,13 +27,13 @@ class Block extends Particle
 
     # ThreeJS stuff
     material = Random.item PARTICLE_MATERIALS
-    geometry = new THREE.BoxGeometry(size, size, size)
-    @mesh = new THREE.Mesh(geometry, material)
-    
+
     super
 
-    @setRadius @mass * 8
-    position = new Vector(random(@width), random(@height/3))
+    @setRadius size * 8
+    geometry = new THREE.SphereGeometry(@radius)
+    @mesh = new THREE.Mesh(geometry, material)
+    position = new Vector(random(app.game.width), random(app.game.height/3))
     @moveTo position
 
 class Paddle extends Particle
@@ -43,7 +43,7 @@ class Ball extends Particle
     super size
 
     # black ball
-    material = new THREE.MeshBasicMaterial('000000')
+    material = new THREE.MeshBasicMaterial({color: 0x000000})
     geometry = new THREE.BoxGeometry(size, size, size)
     @mesh = new THREE.Mesh(geometry, material)
 
@@ -272,7 +272,7 @@ class App
     @physics.viscosity = 0
     @physics.integrator = new Verlet
 
-    canvas_scale = $('body').width() / 500
+    canvas_scale = 1
 
     # Use Sketch.js to make life much easier
     @game = Sketch.create
@@ -284,18 +284,22 @@ class App
     $('#fragment_canvas').attr('height', @game.height)
     $('#fragment_canvas').attr('width', @game.width)
 
-
     # Three.JS scene
     aspect = @game.width / @game.height
     @camera = new THREE.OrthographicCamera(
-      @game.width / -2,
-      @game.width / 2,
-      @game.height / 2,
-      @game.height / -2,
+      0,
+      @game.width,
+      0,
+      @game.height,
       1, 10000)
+    @camera.position.z = 1000
 
     @scene = new THREE.Scene()
+    @camera.lookAt @scene.position
     @scene.add @camera
+    @light = new THREE.AmbientLight(0.5)
+    @scene.add @light
+
     @renderer = new THREE.WebGLRenderer(alpha: true)
     @renderer.setSize @game.width, @game.height
     @renderer.sortObjects = false
@@ -313,7 +317,7 @@ class App
 
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
-    @ball = new Ball(0.5)
+    @ball = new Ball(8*0.5)
 
     # powerups
     @ball_attraction = new AttractionPowerup @ball.pos, 200, 2000
