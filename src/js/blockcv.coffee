@@ -161,37 +161,37 @@ class EaselStage
     @stage.addChild @scoreCounter
 
     @canvas = $('#fragment_canvas')
-    createjs.Ticker.addEventListener 'tick', @handleTick
 
   updateScoreCounter: =>
     @scoreCounter.text = "#{@game.score} points"
 
-  handleTick: =>
+  tick: =>
+    if @stage.getNumChildren() == 0
+      return
+
     @updateScoreCounter()
-    setTimeout =>
-      i = 0
-      while i < @stage.getNumChildren()
-        frag = @stage.getChildAt i
-        if frag.text?
-          i += 1
-          continue
-
-        frag.x += frag.vel.x
-        frag.y += frag.vel.y
-        frag.alpha -= 0.1
-
-        if frag.x > @canvas.width() or frag.x < 0
-          frag.vel.x = -frag.vel.x
-
-        if frag.y > @canvas.height() or frag.y < 0
-          frag.vel.y = -frag.vel.y
-
-        if frag.alpha <= 0
-          @stage.removeChildAt i
-
-        @stage.update()
+    i = 0
+    while i < @stage.getNumChildren()
+      frag = @stage.getChildAt i
+      if frag.text?
         i += 1
-    , 0
+        continue
+
+      frag.x += frag.vel.x
+      frag.y += frag.vel.y
+      frag.alpha -= 0.1
+
+      if frag.x > @canvas.width() or frag.x < 0
+        frag.vel.x = -frag.vel.x
+
+      if frag.y > @canvas.height() or frag.y < 0
+        frag.vel.y = -frag.vel.y
+
+      if frag.alpha <= 0
+        @stage.removeChildAt i
+
+      @stage.update()
+      i += 1
 
   makeExplosion: (pos) =>
     setTimeout =>
@@ -348,6 +348,7 @@ class App
 
     # Step the simulation
     @physics.step()
+    @easel_stage.tick()
 
     # Draw particles
     for particle in @physics.particles
