@@ -210,68 +210,68 @@ class EdgeBouncy extends EdgeBounce
         @missed()
 
 
-class EaselStage
-  constructor: (game)->
-    @game = game
-    @stage = new createjs.Stage 'fragment_canvas'
+# class EaselStage
+#   constructor: (game)->
+#     @game = game
+#     @stage = new createjs.Stage 'fragment_canvas'
 
-    @scoreCounter = new createjs.Text "", "36px Arial", "black"
-    @scoreCounter.x = @scoreCounter.y = 10
-    @stage.addChild @scoreCounter
+#     @scoreCounter = new createjs.Text "", "36px Arial", "black"
+#     @scoreCounter.x = @scoreCounter.y = 10
+#     @stage.addChild @scoreCounter
 
-    @canvas = $('#fragment_canvas')
-    createjs.Ticker.addEventListener 'tick', @handleTick
+#     @canvas = $('#fragment_canvas')
+#     createjs.Ticker.addEventListener 'tick', @handleTick
 
-  updateScoreCounter: =>
-    @scoreCounter.text = "#{@game.score} points"
+#   updateScoreCounter: =>
+#     @scoreCounter.text = "#{@game.score} points"
 
-  handleTick: =>
-    @updateScoreCounter()
-    setTimeout =>
-      i = 0
-      while i < @stage.getNumChildren()
-        frag = @stage.getChildAt i
-        if frag.text?
-          i += 1
-          continue
+#   handleTick: =>
+#     @updateScoreCounter()
+#     setTimeout =>
+#       i = 0
+#       while i < @stage.getNumChildren()
+#         frag = @stage.getChildAt i
+#         if frag.text?
+#           i += 1
+#           continue
 
-        frag.x += frag.vel.x
-        frag.y += frag.vel.y
-        frag.alpha -= 0.1
+#         frag.x += frag.vel.x
+#         frag.y += frag.vel.y
+#         frag.alpha -= 0.1
 
-        if frag.x > @canvas.width() or frag.x < 0
-          frag.vel.x = -frag.vel.x
+#         if frag.x > @canvas.width() or frag.x < 0
+#           frag.vel.x = -frag.vel.x
 
-        if frag.y > @canvas.height() or frag.y < 0
-          frag.vel.y = -frag.vel.y
+#         if frag.y > @canvas.height() or frag.y < 0
+#           frag.vel.y = -frag.vel.y
 
-        if frag.alpha <= 0
-          @stage.removeChildAt i
+#         if frag.alpha <= 0
+#           @stage.removeChildAt i
 
-        @stage.update()
-        i += 1
-    , 0
+#         @stage.update()
+#         i += 1
+#     , 0
 
-  makeExplosion: (pos) =>
-    setTimeout =>
-      for i in [1..30]
-        if @stage.getNumChildren() > 50
-          return
-        circle = new createjs.Shape()
-        col = -> Math.round(Math.random() * 255)
-        circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
-        circle.x = pos.x
-        circle.y = pos.y
+#   makeExplosion: (pos) =>
+#     setTimeout =>
+#       for i in [1..30]
+#         if @stage.getNumChildren() > 50
+#           return
+#         circle = new createjs.Shape()
+#         col = -> Math.round(Math.random() * 255)
+#         circle.graphics.beginFill("rgb(#{col()},#{col()},#{col()})").drawCircle 0, 0, 5
+#         circle.x = pos.x
+#         circle.y = pos.y
 
-        # now to set the random velocity
-        angle = Math.random() * 360 * (Math.PI / 180)
-        mag = Math.random() * 15
-        circle.vel =
-          x: Math.cos(angle) * mag
-          y: Math.sin(angle) * mag
+#         # now to set the random velocity
+#         angle = Math.random() * 360 * (Math.PI / 180)
+#         mag = Math.random() * 15
+#         circle.vel =
+#           x: Math.cos(angle) * mag
+#           y: Math.sin(angle) * mag
 
-        @stage.addChild circle
-    , 0
+#         @stage.addChild circle
+#     , 0
 
 class App
   constructor: ->
@@ -289,7 +289,6 @@ class App
 
     tracker.on "track", @onTrackEvent
 
-    @easel_stage = new EaselStage(this)
     @score = 0
 
     # Create a physics instance which uses the Verlet integration method
@@ -438,10 +437,10 @@ class App
       @paddlebehaviour.desired_x = rect.x + rect.width / 2
 
   onCollision: (particle, other) =>
-    # ball <--> particle collision?
+    # ball <--> particle collision
 
     # particle.fragility -= 1 # Ball loses health!
-    # particle.mesh.scale = particle.radius / (2 + particle.fragility)
+    # particle.mesh.scale.x = 0.5  # -= 1 / particle.fragility?
     # if particle.fragility > 0
       # return
 
@@ -451,14 +450,9 @@ class App
 
     @score += 1
 
-    @easel_stage.makeExplosion
-      x: particle.pos.x
-      y: particle.pos.y
-
-    # Delete particle
-    # remove from pools
-    # increment score?
-
+    # @easel_stage.makeExplosion
+    #   x: particle.pos.x
+    #   y: particle.pos.y
 
   onTrackEvent: (event) =>
 
