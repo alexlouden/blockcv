@@ -23,7 +23,7 @@ PARTICLE_COLOURS = [
   0xE4272E
 ]
 
-PARTICLE_MATERIALS = (new THREE.MeshBasicMaterial({color: c}) for c in PARTICLE_COLOURS)
+PARTICLE_MATERIALS = (new THREE.MeshPhongMaterial({color: c}) for c in PARTICLE_COLOURS)
 
 class Block extends Particle
   constructor: () ->
@@ -52,7 +52,7 @@ class Paddle extends Particle
     @setRadius PADDLE_WIDTH / 2
     
     geometry = new THREE.BoxGeometry(PADDLE_WIDTH, height, 1)
-    material = new THREE.MeshBasicMaterial({color: 0x000000})
+    material = new THREE.MeshPhongMaterial({color: 0x000000})
     @mesh = new THREE.Mesh(geometry, material)
     
     bottomcentre = new Vector(app.game.width / 2, app.game.height - 30)
@@ -65,7 +65,7 @@ class Ball extends Particle
     super BALL_MASS
 
     # black ball
-    material = new THREE.MeshBasicMaterial({color: 0x000000})
+    material = new THREE.MeshPhongMaterial({color: 0x000000})
     geometry = new THREE.SphereGeometry(radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
     
@@ -310,19 +310,20 @@ class App
 
     # Three.JS scene
     aspect = @game.width / @game.height
-    @camera = new THREE.OrthographicCamera(
-      0,
-      @game.width,
-      0,
-      @game.height,
-      1, 10000)
+    @camera = new THREE.OrthographicCamera(0, @game.width, 0, @game.height, 1, 10000)
+    # @camera = new THREE.PerspectiveCamera(60, aspect, 1, 10000)
     @camera.position.z = 1000
 
     @scene = new THREE.Scene()
     @camera.lookAt @scene.position
     @scene.add @camera
-    @light = new THREE.AmbientLight(0.5)
-    @scene.add @light
+
+    # Lighting
+    ambientlight = new THREE.AmbientLight(0x000044)
+    @scene.add ambientlight
+    @pointlight = new THREE.PointLight(0xffffff)
+    @pointlight.position.set(@game.width / 2, -500, -500)
+    @scene.add @pointlight
 
     @renderer = new THREE.WebGLRenderer(alpha: true)
     @renderer.setSize @game.width, @game.height
