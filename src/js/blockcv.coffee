@@ -1,6 +1,10 @@
-BLOCK_SIZE_MIN = .8
-BLOCK_SIZE_VARIANCE = 1.5
+BLOCK_SIZE_MIN = 7
+BLOCK_SIZE_MAX = 20
 NUM_BLOCKS = 40
+
+BALL_SIZE = 15
+BALL_MASS = 1
+BALL_INITIAL_SPEED = 10000
 
 Array::remove = (obj) ->
   @filter (el) -> el isnt obj
@@ -21,16 +25,16 @@ PARTICLE_MATERIALS = (new THREE.MeshBasicMaterial({color: c}) for c in PARTICLE_
 class Block extends Particle
   constructor: () ->
 
-    size = BLOCK_SIZE_MIN + Math.random() * BLOCK_SIZE_VARIANCE
-
-    @fragility = 1 + Math.floor ( Math.random() * 5 )
+    radius = BLOCK_SIZE_MIN + Math.random() * (BLOCK_SIZE_MAX - BLOCK_SIZE_MIN)
+    mass = Math.sqrt (radius / 8)
+    @fragility = 1 # + Math.floor ( Math.random() * 5 )
 
     # ThreeJS stuff
     material = Random.item PARTICLE_MATERIALS
 
-    super
+    super mass
 
-    @setRadius size * 8
+    @setRadius radius
     geometry = new THREE.SphereGeometry(@radius)
     @mesh = new THREE.Mesh(geometry, material)
     position = new Vector(random(app.game.width), random(app.game.height/3))
@@ -39,14 +43,18 @@ class Block extends Particle
 class Paddle extends Particle
 
 class Ball extends Particle
-  constructor: (size) ->
-    super size
+  constructor: () ->
+    radius = BALL_SIZE
+    super BALL_MASS
 
     # black ball
     material = new THREE.MeshBasicMaterial({color: 0x000000})
-    geometry = new THREE.BoxGeometry(size, size, size)
+    geometry = new THREE.SphereGeometry(radius)
     @mesh = new THREE.Mesh(geometry, material)
-
+    
+    @setRadius radius
+    centre = new Vector(app.game.width/2, app.game.height/2)
+    @moveTo centre
 
 class AttractionPowerup extends Attraction
   constructor: ->
@@ -317,7 +325,7 @@ class App
 
     up = new Vector(0.0, -100.0)
     antiGravity = new ConstantForce(up)
-    @ball = new Ball(8*0.5)
+    @ball = new Ball()
 
     # powerups
     @ball_attraction = new AttractionPowerup @ball.pos, 200, 2000
@@ -357,12 +365,9 @@ class App
       @physics.particles.push particle
 
     ################################
-    # Set up ball
-    @ball.setRadius @ball.mass * 8
-    centre = new Vector(@game.width/2, @game.height/2)
-    @ball.moveTo centre
 
     # Ball behaviours
+    @scene.add @ball.mesh
     @collision.pool.push @ball
     @ball.behaviours.push edge, @collision
     @physics.particles.push @ball
@@ -467,8 +472,8 @@ class App
     console.log 'Starting game'
     @state = 'playing'
 
-    # TODO randomize initial velocity
-    @ball.acc.set 4000, -4000
+    # TODO randomize initial direction
+    @ball.acc.set BALL_INITIAL_SPEED, -BALL_INITIAL_SPEED
 
   onMissed: =>
     console.log 'You missed!'
