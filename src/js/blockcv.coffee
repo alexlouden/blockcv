@@ -50,11 +50,11 @@ class Paddle extends Particle
 
     super 10
     @setRadius PADDLE_WIDTH / 2
-    
+
     geometry = new THREE.BoxGeometry(PADDLE_WIDTH, height, 1)
     material = new THREE.MeshPhongMaterial({color: 0x000000})
     @mesh = new THREE.Mesh(geometry, material)
-    
+
     bottomcentre = new Vector(app.game.width / 2, app.game.height - 30)
     @moveTo bottomcentre
 
@@ -68,7 +68,7 @@ class Ball extends Particle
     material = new THREE.MeshPhongMaterial({color: 0x000000})
     geometry = new THREE.SphereGeometry(radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
-    
+
     @setRadius radius
     centre = new Vector(app.game.width/2, app.game.height/2)
     @moveTo centre
@@ -276,18 +276,10 @@ class EdgeBouncy extends EdgeBounce
 class App
   constructor: ->
     video = document.getElementById("video")
+    canvas = document.getElementById "trackingCanvas"
 
-    tracking.ColorTracker.registerColor 'redish', (r, g, b) ->
+    @tracker = new ColourTracker video, canvas, @onTrackEvent, (r, g, b) ->
       return r > 100 and g < 30 and b < 30
-
-    tracker = new tracking.ColorTracker("redish")
-    # can also use custom colours
-    # See http://trackingjs.com/api/ColorTracker.js.html#line366
-
-    tracking.track "#video", tracker,
-      camera: true
-
-    tracker.on "track", @onTrackEvent
 
     @score = 0
 
@@ -408,6 +400,9 @@ class App
 
     # Step the simulation
     @physics.step()
+    setTimeout =>
+      @tracker.drawToCanvas()
+    , 0
 
     # Update particle positions
     for p in @physics.particles
@@ -456,21 +451,11 @@ class App
     #   y: particle.pos.y
 
   onTrackEvent: (event) =>
+    console.log 'on track'
+    event.x = event.x * $('#trackingCanvas').width()
+    event.y = event.y * $('#trackingCanvas').height()
 
-    if event.data.length == 0
-      @target_rectangle = false
-      return
-
-    # if event.data.length > 1
-    #   console.log 'multiple rectangles, choosing first'
-
-    rect = event.data[0]
-    rect.height = rect.height * @game.scale
-    rect.width = rect.width * @game.scale
-    rect.x = @game.width - rect.x * @game.scale - rect.width
-    rect.y = rect.y * @game.scale
-
-    @target_rectangle = rect
+    @target_rectangle = event
 
     if @state == 'waiting'
       @onGameStart()
