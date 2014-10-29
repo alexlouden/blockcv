@@ -276,9 +276,8 @@ class EdgeBouncy extends EdgeBounce
 class App
   constructor: ->
     video = document.getElementById("video")
-    canvas = document.getElementById "trackingCanvas"
 
-    @tracker = new ColourTracker video, canvas, @onTrackEvent, (r, g, b) ->
+    @tracker = new ColourTracker video, @onTrackEvent, (r, g, b) ->
       return r > 100 and g < 30 and b < 30
 
     @score = 0

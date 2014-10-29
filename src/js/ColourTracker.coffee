@@ -1,6 +1,9 @@
 class ColourTracker
-  constructor: (@video, @canvas, @callback, @colourFn) ->
+  constructor: (@video, @callback, @colourFn) ->
     @count = 0
+    @canvas = document.createElement 'canvas'
+    @canvas.width = 200
+    @canvas.height = 150
     @context = @canvas.getContext '2d'
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
