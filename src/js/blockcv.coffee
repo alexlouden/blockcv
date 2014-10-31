@@ -279,7 +279,7 @@ class App
 
 
     tracking.ColorTracker.registerColor 'redish', (r, g, b) ->
-      return r > 80 and g < 50 and b < 50
+      return r > 60 and g < 50 and b < 50
 
     tracker = new tracking.ColorTracker("redish")
     # can also use custom colours
