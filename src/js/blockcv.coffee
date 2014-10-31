@@ -278,7 +278,7 @@ class App
     video = document.getElementById("video")
 
     tracking.ColorTracker.registerColor 'redish', (r, g, b) ->
-      return r > 100 and g < 30 and b < 30
+      return r > 80 and g < 50 and b < 50
 
     tracker = new tracking.ColorTracker("redish")
     # can also use custom colours
