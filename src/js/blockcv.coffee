@@ -50,11 +50,11 @@ class Paddle extends Particle
 
     super 10
     @setRadius PADDLE_WIDTH / 2
-    
+
     geometry = new THREE.BoxGeometry(PADDLE_WIDTH, height, 1)
     material = new THREE.MeshPhongMaterial({color: 0x000000})
     @mesh = new THREE.Mesh(geometry, material)
-    
+
     bottomcentre = new Vector(app.game.width / 2, app.game.height - 30)
     @moveTo bottomcentre
 
@@ -68,7 +68,7 @@ class Ball extends Particle
     material = new THREE.MeshPhongMaterial({color: 0x000000})
     geometry = new THREE.SphereGeometry(radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
-    
+
     @setRadius radius
     centre = new Vector(app.game.width/2, app.game.height/2)
     @moveTo centre
@@ -276,6 +276,7 @@ class EdgeBouncy extends EdgeBounce
 class App
   constructor: ->
     video = document.getElementById("video")
+
 
     tracking.ColorTracker.registerColor 'redish', (r, g, b) ->
       return r > 80 and g < 50 and b < 50
@@ -490,9 +491,16 @@ class App
     @state = 'waiting'
     # ballbehaviour = new BallSpeed()
     # @ball.behaviours.push
+    #
+  onResize: =>
+    console.log 'Resize!'
+    view = document.getElementById 'game_viewer'
+    view.webkitRequestFullscreen()
 
 $ ->
   window.app = new App()
+  document.addEventListener 'resize', app.onResize
+  document.addEventListener 'click', app.onResize
 
 $(window).unload ->
   window.app.unload()
