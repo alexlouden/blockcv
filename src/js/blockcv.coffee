@@ -421,14 +421,6 @@ class App
     # Render blocks in 3d
     @renderer.render @scene, @camera
 
-    # Draw paddle
-    # p = @paddle
-    # @game.strokeStyle = 'rgba(0,0,0,1)'
-    # @game.lineWidth = 10
-    # @game.moveTo(p.pos.x - p.radius, p.pos.y)
-    # @game.lineTo(p.pos.x + p.radius, p.pos.y)
-    # @game.stroke()
-
     # rectangle position
     if @target_rectangle
       @game.strokeStyle = 'magenta'
