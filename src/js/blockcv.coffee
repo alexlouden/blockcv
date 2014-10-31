@@ -1,8 +1,8 @@
-BLOCK_SIZE_MIN = 10
-BLOCK_SIZE_MAX = 30
+BLOCK_SIZE_MIN = 20
+BLOCK_SIZE_MAX = 50
 NUM_BLOCKS = 40
 
-BALL_SIZE = 15
+BALL_SIZE = 25
 BALL_MASS = 1
 BALL_INITIAL_SPEED = 20000
 
@@ -52,7 +52,7 @@ class Paddle extends Particle
     @setRadius PADDLE_WIDTH / 2
     
     geometry = new THREE.BoxGeometry(PADDLE_WIDTH, height, 1)
-    material = new THREE.MeshPhongMaterial({color: 0x000000})
+    material = new THREE.MeshPhongMaterial({color: 0x777777})
     @mesh = new THREE.Mesh(geometry, material)
     
     bottomcentre = new Vector(app.game.width / 2, app.game.height - 30)
@@ -65,7 +65,7 @@ class Ball extends Particle
     super BALL_MASS
 
     # black ball
-    material = new THREE.MeshPhongMaterial({color: 0x000000})
+    material = new THREE.MeshPhongMaterial({color: 0x777777})
     geometry = new THREE.SphereGeometry(radius, SPHERE_RESOLUTION, SPHERE_RESOLUTION)
     @mesh = new THREE.Mesh(geometry, material)
     
