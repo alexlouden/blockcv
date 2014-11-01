@@ -487,7 +487,10 @@ class App
   onResize: =>
     console.log 'Resize!'
     view = document.getElementById 'game_viewer'
-    view.webkitRequestFullscreen()
+    if view.webkitRequestFullscreen
+      view.webkitRequestFullscreen()
+    else
+      view.mozRequestFullscreen()
 
 $ ->
   window.app = new App()
