@@ -490,7 +490,7 @@ class App
     if view.webkitRequestFullscreen
       view.webkitRequestFullscreen()
     else
-      view.mozRequestFullscreen()
+      view.mozRequestFullScreen()
 
 $ ->
   window.app = new App()
